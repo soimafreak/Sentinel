@@ -2,20 +2,20 @@
 
 #################################################################
 #
-#		Sentinel - Self healing application monitor
+#   Sentinel - Self healing application monitor
 #
-#		Author:				Matthew Smith <soimafreak@gmail.com>
-# 	Site:					http://sentinel.soimafreak.co.uk/
-# 	Purpose:			Check health of a process through various means and keep said process operating correctly
-# 	Date:					27th march 2012
-# 	Explination:	Sentinel will carry out a number of checks on the health of the application / system 
-#									based on the outcome of these checks certain actions will be taken
-# 	Requires:			gem install -r log4r
-# 	Thanks:				http://angrez.blogspot.co.uk/2006/12/log4r-usage-and-examples.html
+#   Author:         Matthew Smith <soimafreak@gmail.com>
+#   Site:           http://sentinel.soimafreak.co.uk/
+#   Purpose:        Check health of a process through various means and keep said process operating correctly
+#   Date:           27th march 2012
+#   Explination:    Sentinel will carry out a number of checks on the health of the application / system 
+#                   based on the outcome of these checks certain actions will be taken
+#   Requires:       gem install -r log4r
+#   Thanks:         http://angrez.blogspot.co.uk/2006/12/log4r-usage-and-examples.html
 #
-#		Copyright:		Copyright (C) 2012, Matthew Smith 
-#		License:
-#		This program is free software: you can redistribute it and/or modify
+#   Copyright:      Copyright (C) 2012, Matthew Smith 
+#   License:
+#   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
