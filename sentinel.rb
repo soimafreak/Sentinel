@@ -31,79 +31,79 @@
 #################################################################
 
 #
-# Requires
+#   Requires
 #
 require 'optparse'
 require 'rubygems'
 require 'log4r'
 
 #
-# Classes 
+#   Classes 
 #
 
-# Score
+#   Score
 
 class Score
-	attr_accessor :processes, :process_state, :application, :disk_utilisation, :memory
-	
-	def initialize(processes = 0, process_state = 0, application = 0, disk_utilisation = 0, memory = 0)
-		@processes 		= 0
-		@process_state 		= 0
-		@application 		= 0
-		@disk_utilisation	= 0
-		@memory			= 0
-	end
+    attr_accessor :processes, :process_state, :application, :disk_utilisation, :memory
+    
+    def initialize(processes = 0, process_state = 0, application = 0, disk_utilisation = 0, memory = 0)
+        @processes          = 0
+        @process_state      = 0
+        @application        = 0
+        @disk_utilisation   = 0
+        @memory             = 0
+    end
 end
 
 #
-# initialize variables
+#   initialize variables
 #
 scores = Score.new
 log_dir = "/var/log/"
 
 #
-# Set up Logging
+#   Set up Logging
 #
 
 include Log4r
 
-# create a logger named 'mylog' that logs to stdout
+# Create a logger named 'mylog' that logs to stdout
 log = Logger.new 'sentinel'
 
 # You can use any Outputter here.
 log.outputters = Outputter.stdout
 
-# log level order is DEBUG < INFO < WARN < ERROR < FATAL
+# Log level order is DEBUG < INFO < WARN < ERROR < FATAL
 log.level = Log4r::INFO
 
 # Open a new file logger and ask him not to truncate the file before opening.
 # FileOutputter.new(nameofoutputter, Hash containing(filename, trunc))
-file = FileOutputter.new('fileOutputter', :filename => 'log',:trunc => false)
+file = FileOutputter.new('fileOutputter', :filename => "#{log_dir}sentinel.log",:trunc => false)
 
 #
 # Get Pids
 #
 
 def get_pids (application)
-	
-	processes = Hash.new 
-	array_of_pids = Array.new
+    
+    processes = Hash.new 
+    array_of_pids = Array.new
 
-	# GET pids / state of "apache" processes
-	list_of_pids = `ps -fu #{application} w | awk '{print $2 "," $7}' | grep -ve "^PID"`
+    # GET pids / state of "apache" processes
+    list_of_pids = `ps -fu #{application} w | awk '{print $2 "," $7}' | grep -ve "^PID"`
 
-	#Convert the list into an array
-	array_of_pids=list_of_pids.split("\n")
+    #Convert the list into an array
+    array_of_pids=list_of_pids.split("\n")
 
-	# Convert array into hash
-	for i in 0...array_of_pids.length
-		processes[i] = {"pid"=>array_of_pids[i].to_s.split(",")[0], "state"=>array_of_pids[i].to_s.split(",")[1]}
-	end
-	return processes
+    # Convert array into hash
+    for i in 0...array_of_pids.length
+        processes[i] = {"pid"=>array_of_pids[i].to_s.split(",")[0], "state"=>array_of_pids[i].to_s.split(",")[1]}
+    end
+    return processes
 end
 
 #
-# Get status of pid
+#   Get status of pid
 #
 
 def check_process_state (processes)
@@ -116,63 +116,63 @@ def check_process_state (processes)
 #       W    paging (not valid since the 2.6.xx kernel)
 #       X    dead (should never be seen)
 #       Z    Defunct ("zombie") process, terminated but not reaped by its parent.
-	keys = processes.keys
-	for key in 0...keys.length
-		#print "key \t: ", keys[key], "\n"
-		#print "pid \t: ", processes[keys[key]]["pid"], "\n"
-		#print "state \t: ", processes[keys[key]]["state"], "\n"
-		if (processes[keys[key]]["state"] == "S" || processes[keys[key]]["state"] == "R")
-#			print "Process: ", processes[keys[key]]["pid"], " is in a pretty standard sleep or running state\n"
-			processes[keys[key]] = {"bad"=>false}
-		elsif (processes[keys[key]]["state"] == "Z" || processes[keys[key]]["state"] == "X")
-#			print "Process: ", processes[keys[key]]["pid"], " is in a pretty bad way, zombied from parent or Dead!\n"
-			processes[keys[key]] = {"bad"=>true}
-		end
-	end
-	
-	#For each bad pid add a score
-	
-	return processes
+    keys = processes.keys
+    for key in 0...keys.length
+        #print "key \t: ", keys[key], "\n"
+        #print "pid \t: ", processes[keys[key]]["pid"], "\n"
+        #print "state \t: ", processes[keys[key]]["state"], "\n"
+        if (processes[keys[key]]["state"] == "S" || processes[keys[key]]["state"] == "R")
+#           print "Process: ", processes[keys[key]]["pid"], " is in a pretty standard sleep or running state\n"
+            processes[keys[key]] = {"bad"=>false}
+        elsif (processes[keys[key]]["state"] == "Z" || processes[keys[key]]["state"] == "X")
+#           print "Process: ", processes[keys[key]]["pid"], " is in a pretty bad way, zombied from parent or Dead!\n"
+            processes[keys[key]] = {"bad"=>true}
+        end
+    end
+    
+    #For each bad pid add a score
+    
+    return processes
 # Probably need to check the state of the PPID as well
 end
 
 #
-# score number of processes
+#   Score number of processes
 #
 
 def score_calc_process_numbers (processes, expected)
-	score = 0
-	if (expected == 0)
-		score = 0
-	elsif (processes.length < expected || processes.length > expected)
-		score = 100
-	elsif (processes.length == expected)
-		score = 0
-	end
-	return score
+    score = 0
+    if (expected == 0)
+        score = 0
+    elsif (processes.length < expected || processes.length > expected)
+        score = 100
+    elsif (processes.length == expected)
+        score = 0
+    end
+    return score
 end
 
 #
-# Calculate scores
+#   Calculate scores
 #
 
 def score_calc_process (processes)
-	score = 0	
-	badpids = 0
-	keys = processes.keys
-	for key in 0...keys.length
-		if (processes[keys[key]]["bad"] == true)
-			badpids += 1	
-		end
-	end
-	if (keys.length > 0)
-		score = ((badpids.to_f / keys.length.to_f)*100).to_i
-	end
-	return score
+    score   = 0   
+    badpids = 0
+    keys    = processes.keys
+    for key in 0...keys.length
+        if (processes[keys[key]]["bad"] == true)
+            badpids += 1    
+        end
+    end
+    if (keys.length > 0)
+        score = ((badpids.to_f / keys.length.to_f)*100).to_i
+    end
+    return score
 end
 
 def score_calc_disk_utilisation (disks)
-	score = 0
+    score = 0
         baddisks = 0
         keys = disks.keys
         for key in 0...keys.length
@@ -183,7 +183,7 @@ def score_calc_disk_utilisation (disks)
         if (keys.length > 0)
                 score = ((baddisks.to_f / keys.length.to_f)*100).to_i
         end
-	return score
+    return score
 end
 
 def get_disks 
@@ -191,7 +191,7 @@ def get_disks
         array_of_disks = Array.new
 
         # GET disk info
-	df_out = `df -TPh | grep -ve "^Files" | awk '{ print $NF "," $(NF-1) "," $1 "," $2}'`
+    df_out = `df -TPh | grep -ve "^Files" | awk '{ print $NF "," $(NF-1) "," $1 "," $2}'`
 
         #Convert the list into an array
         array_of_disks=df_out.split("\n")
@@ -201,29 +201,29 @@ def get_disks
                 disks[i] = {"mount"=>array_of_disks[i].to_s.split(",")[0], "utilisation"=>array_of_disks[i].to_s.split(",")[1], "filesystem"=>array_of_disks[i].to_s.split(",")[2], "type"=>array_of_disks[i].to_s.split(",")[3]}
         end
 
-	return disks
+    return disks
 end
 
 def check_disk_utilisation(disks, utilisation)
 
-	keys = disks.keys
-	
-	for key in 0...keys.length
-		#print "Count\t: ", keys[key], "\n"
-		#print "Mount\t: ", hash_of_disks[keys[key]]["mount"], "\n"
-		#print "Utilisation\t: ", hash_of_disks[keys[key]]["utilisation"], "\n"
-		#print "File System\t: ", hash_of_disks[keys[key]]["filesystem"], "\n"
-		#print "File Type\t: ", hash_of_disks[keys[key]]["type"], "\n\n"
-		if (disks[keys[key]]["utilisation"].to_i > utilisation)
-			#print disks[keys[key]]["mount"], " is ", disks[keys[key]]["utilisation"], " utilised\n"
-			disks[keys[key]] = {"bad"=>true}
-		end 
-	end
-	return disks
+    keys = disks.keys
+    
+    for key in 0...keys.length
+        #print "Count\t: ", keys[key], "\n"
+        #print "Mount\t: ", hash_of_disks[keys[key]]["mount"], "\n"
+        #print "Utilisation\t: ", hash_of_disks[keys[key]]["utilisation"], "\n"
+        #print "File System\t: ", hash_of_disks[keys[key]]["filesystem"], "\n"
+        #print "File Type\t: ", hash_of_disks[keys[key]]["type"], "\n\n"
+        if (disks[keys[key]]["utilisation"].to_i > utilisation)
+            #print disks[keys[key]]["mount"], " is ", disks[keys[key]]["utilisation"], " utilised\n"
+            disks[keys[key]] = {"bad"=>true}
+        end 
+    end
+    return disks
 end
 
 #
-# Main
+#   Main
 #
 
 #out = `sleep 30`
@@ -250,35 +250,35 @@ options = {}
 
 optparse = OptionParser.new do|opts|
 
-	# Set a banner, displayed at the top of the help screen.
-	opts.banner = "Usage: sentinel.rb [options] argument ..."
+    # Set a banner, displayed at the top of the help screen.
+    opts.banner = "Usage: sentinel.rb [options] argument ..."
 
-	# Define the options, and what they do
-	options[:verbose] = false
-	opts.on( '-v', '--verbose', 'Output more information' ) do
-		options[:verbose] = true
-   	end
-	options[:application] = nil
-	opts.on( '-a', '--application APPLICATION', String,  'Application owener to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
-		options[:application] = app
-	end
-	options[:processes] = 0
-	opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
-		options[:processes] = n
-	end
-	options[:disk_utilisation] = 70
-	opts.on( '-d', '--disk-utilisation INT', Integer, 'Disk utilisation') do |du|
-		options[:disk_utilisation] = du
-	end
-	opts.on( '-h', '--help', 'Display this screen' ) do
-     		puts opts
-     		exit
-   	end
+    # Define the options, and what they do
+    options[:verbose] = false
+    opts.on( '-v', '--verbose', 'Output more information' ) do
+        options[:verbose] = true
+    end
+    options[:application] = nil
+    opts.on( '-a', '--application APPLICATION', String,  'Application owener to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
+        options[:application] = app
+    end
+    options[:processes] = 0
+    opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
+        options[:processes] = n
+    end
+    options[:disk_utilisation] = 70
+    opts.on( '-d', '--disk-utilisation INT', Integer, 'Disk utilisation') do |du|
+        options[:disk_utilisation] = du
+    end
+    opts.on( '-h', '--help', 'Display this screen' ) do
+            puts opts
+            exit
+    end
 end
 
 optparse.parse!
 #
-# Check Process health
+#   Check Process health
 #
 
 hash_of_processes = Hash.new 
@@ -291,7 +291,7 @@ print "Processes score = ", scores.processes, "\n"
 
 
 #
-# Check system health
+#   Check system health
 #
 
 hash_of_disks = Hash.new 
