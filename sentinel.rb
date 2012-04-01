@@ -56,10 +56,52 @@ class Score
 end
 
 #
+# Get options
+#
+
+# This hash will hold all of the options
+# parsed from the command-line by
+# OptionParser.
+options = {}
+
+optparse = OptionParser.new do|opts|
+
+    # Set a banner, displayed at the top of the help screen.
+    opts.banner = "Usage: sentinel.rb [options] argument ..."
+
+    # Define the options, and what they do
+    options[:application] = nil
+    opts.on( '-a', '--application APPLICATION', String,  'Application owener to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
+        options[:application] = app
+    end
+    options[:disk_utilisation] = 70
+    opts.on( '-d', '--disk-utilisation INT', Integer, 'Disk utilisation') do |du|
+        options[:disk_utilisation] = du
+    end
+    options[:log_location] = "/var/log/"
+    opts.on( '-l', '--log-location PATH', 'Directory the log file should be in' ) do |log_location|
+        options[:log_location] = log_location
+    end
+    options[:processes] = 0
+    opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
+        options[:processes] = n
+    end
+    options[:verbose] = false
+    opts.on( '-v', '--verbose', 'Output more information' ) do
+        options[:verbose] = true
+    end
+    opts.on( '-h', '--help', 'Display this screen' ) do
+            puts opts
+            exit
+    end
+end
+
+optparse.parse!
+
+#
 #   initialize variables
 #
 scores = Score.new
-log_dir = "/var/log/"
 
 #
 #   Set up Logging
@@ -68,20 +110,39 @@ log_dir = "/var/log/"
 include Log4r
 
 # Create a logger named 'mylog' that logs to stdout
-log = Logger.new 'sentinel'
+$log = Logger.new 'sentinel'
 
 # You can use any Outputter here.
-log.outputters = Outputter.stdout
+$log.outputters = Outputter.stdout if options[:verbose]
 
 # Log level order is DEBUG < INFO < WARN < ERROR < FATAL
-log.level = Log4r::INFO
+$log.level = Log4r::INFO
 
 # Open a new file logger and ask him not to truncate the file before opening.
 # FileOutputter.new(nameofoutputter, Hash containing(filename, trunc))
-file = FileOutputter.new('fileOutputter', :filename => "#{log_dir}sentinel.log",:trunc => false)
+file = FileOutputter.new('fileOutputter', :filename => "#{options[:log_location]}sentinel.log",:trunc => false)
+
+# You can add as many outputters you want. You can add them using reference
+# or by name specified while creating
+$log.add(file)
+# or mylog.add(fileOutputter) : name we have given.
+
+# As I have set my logging level to ERROR. only messages greater than or 
+# equal to this level will show. Order is
+# DEBUG < INFO < WARN < ERROR < FATAL
+
+# specify the format for the message.
+format = PatternFormatter.new(:pattern => "[%l] %d: %m")
+
+# Add formatter to outputter not to logger. 
+# So its like this : you add outputter to logger, and add formattters to outputters.
+# As we haven't added this formatter to outputter we created to log messages at 
+# STDOUT. Log messages at stdout will be simple
+# but the log messages in file will be formatted
+file.formatter = format
 
 #
-# Get Pids
+#   Get Pids
 #
 
 def get_pids (application)
@@ -173,33 +234,33 @@ end
 
 def score_calc_disk_utilisation (disks)
     score = 0
-        baddisks = 0
-        keys = disks.keys
-        for key in 0...keys.length
-                if (disks[keys[key]]["bad"] == true)
-                        baddisks += 1
-                end
+    baddisks = 0
+    keys = disks.keys
+    for key in 0...keys.length
+        if (disks[keys[key]]["bad"] == true)
+            baddisks += 1
         end
-        if (keys.length > 0)
-                score = ((baddisks.to_f / keys.length.to_f)*100).to_i
-        end
+    end
+    if (keys.length > 0)
+        score = ((baddisks.to_f / keys.length.to_f)*100).to_i
+    end
     return score
 end
 
 def get_disks 
-        disks = Hash.new
-        array_of_disks = Array.new
+    disks = Hash.new
+    array_of_disks = Array.new
 
-        # GET disk info
+    # GET disk info
     df_out = `df -TPh | grep -ve "^Files" | awk '{ print $NF "," $(NF-1) "," $1 "," $2}'`
 
-        #Convert the list into an array
-        array_of_disks=df_out.split("\n")
+    #Convert the list into an array
+    array_of_disks=df_out.split("\n")
 
-        # Convert array into hash
-        for i in 0...array_of_disks.length
-                disks[i] = {"mount"=>array_of_disks[i].to_s.split(",")[0], "utilisation"=>array_of_disks[i].to_s.split(",")[1], "filesystem"=>array_of_disks[i].to_s.split(",")[2], "type"=>array_of_disks[i].to_s.split(",")[3]}
-        end
+    # Convert array into hash
+    for i in 0...array_of_disks.length
+        disks[i] = {"mount"=>array_of_disks[i].to_s.split(",")[0], "utilisation"=>array_of_disks[i].to_s.split(",")[1], "filesystem"=>array_of_disks[i].to_s.split(",")[2], "type"=>array_of_disks[i].to_s.split(",")[3]}
+    end
 
     return disks
 end
@@ -215,7 +276,7 @@ def check_disk_utilisation(disks, utilisation)
         #print "File System\t: ", hash_of_disks[keys[key]]["filesystem"], "\n"
         #print "File Type\t: ", hash_of_disks[keys[key]]["type"], "\n\n"
         if (disks[keys[key]]["utilisation"].to_i > utilisation)
-            #print disks[keys[key]]["mount"], " is ", disks[keys[key]]["utilisation"], " utilised\n"
+            $log.info "#{disks[keys[key]]["mount"]} is #{disks[keys[key]]["utilisation"]} utilised\n"
             disks[keys[key]] = {"bad"=>true}
         end 
     end
@@ -239,44 +300,6 @@ end
 #print "(simple terminate on process)\n" if out_ts == 15
 #print "(kill on process)\n" if out_ts == 9
 
-#
-# Get options
-#
-
-# This hash will hold all of the options
-# parsed from the command-line by
-# OptionParser.
-options = {}
-
-optparse = OptionParser.new do|opts|
-
-    # Set a banner, displayed at the top of the help screen.
-    opts.banner = "Usage: sentinel.rb [options] argument ..."
-
-    # Define the options, and what they do
-    options[:verbose] = false
-    opts.on( '-v', '--verbose', 'Output more information' ) do
-        options[:verbose] = true
-    end
-    options[:application] = nil
-    opts.on( '-a', '--application APPLICATION', String,  'Application owener to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
-        options[:application] = app
-    end
-    options[:processes] = 0
-    opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
-        options[:processes] = n
-    end
-    options[:disk_utilisation] = 70
-    opts.on( '-d', '--disk-utilisation INT', Integer, 'Disk utilisation') do |du|
-        options[:disk_utilisation] = du
-    end
-    opts.on( '-h', '--help', 'Display this screen' ) do
-            puts opts
-            exit
-    end
-end
-
-optparse.parse!
 #
 #   Check Process health
 #
