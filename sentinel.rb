@@ -82,6 +82,10 @@ optparse = OptionParser.new do|opts|
     opts.on( '-l', '--log-location PATH', 'Directory the log file should be in' ) do |log_location|
         options[:log_location] = log_location
     end
+    options[:log_level] = "INFO"
+    opts.on( '--log-level DEBUG | INFO | WARN | ERROR | FATAL', String, 'Level of Logging required' ) do |log_level|
+        options[:log_level] = log_level.upcase
+    end
     options[:processes] = 0
     opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
         options[:processes] = n
@@ -116,7 +120,20 @@ $log = Logger.new 'sentinel'
 $log.outputters = Outputter.stdout if options[:verbose]
 
 # Log level order is DEBUG < INFO < WARN < ERROR < FATAL
-$log.level = Log4r::INFO
+case options[:log_level]
+    when    "DEBUG"
+        $log.level = Log4r::DEBUG
+    when    "INFO"
+        $log.level = Log4r::INFO
+    when    "WARN"
+        $log.level = Log4r::WARN
+    when    "ERROR"
+        $log.level = Log4r::ERROR
+    when    "FATAL"
+        $log.level = Log4r::FATAL
+    else
+         print "You provided an invalid option: #{options[:log_level]}"
+end
 
 # Open a new file logger and ask him not to truncate the file before opening.
 # FileOutputter.new(nameofoutputter, Hash containing(filename, trunc))
@@ -179,14 +196,14 @@ def check_process_state (processes)
 #       Z    Defunct ("zombie") process, terminated but not reaped by its parent.
     keys = processes.keys
     for key in 0...keys.length
-        #print "key \t: ", keys[key], "\n"
-        #print "pid \t: ", processes[keys[key]]["pid"], "\n"
-        #print "state \t: ", processes[keys[key]]["state"], "\n"
+        $log.debug "key \t: #{keys[key]}"
+        $log.debug "pid \t: #{processes[keys[key]]["pid"]}"
+        $log.debug "state \t: #{processes[keys[key]]["state"]}"
         if (processes[keys[key]]["state"] == "S" || processes[keys[key]]["state"] == "R")
-#           print "Process: ", processes[keys[key]]["pid"], " is in a pretty standard sleep or running state\n"
+            $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty standard sleep or running state"
             processes[keys[key]] = {"bad"=>false}
         elsif (processes[keys[key]]["state"] == "Z" || processes[keys[key]]["state"] == "X")
-#           print "Process: ", processes[keys[key]]["pid"], " is in a pretty bad way, zombied from parent or Dead!\n"
+            $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, zombied from parent or Dead!"
             processes[keys[key]] = {"bad"=>true}
         end
     end
@@ -270,13 +287,13 @@ def check_disk_utilisation(disks, utilisation)
     keys = disks.keys
     
     for key in 0...keys.length
-        #print "Count\t: ", keys[key], "\n"
-        #print "Mount\t: ", hash_of_disks[keys[key]]["mount"], "\n"
-        #print "Utilisation\t: ", hash_of_disks[keys[key]]["utilisation"], "\n"
-        #print "File System\t: ", hash_of_disks[keys[key]]["filesystem"], "\n"
-        #print "File Type\t: ", hash_of_disks[keys[key]]["type"], "\n\n"
+        $log.debug "Count\t: #{keys[key]}"
+        $log.debug "Mount\t: #{disks[keys[key]]["mount"]}"
+        $log.debug "Utilisation\t: #{disks[keys[key]]["utilisation"]}"
+        $log.debug "File System\t: #{disks[keys[key]]["filesystem"]}"
+        $log.debug "File Type\t: #{disks[keys[key]]["type"]}"
         if (disks[keys[key]]["utilisation"].to_i > utilisation)
-            $log.info "#{disks[keys[key]]["mount"]} is #{disks[keys[key]]["utilisation"]} utilised\n"
+            $log.info "#{disks[keys[key]]["mount"]} is #{disks[keys[key]]["utilisation"]} utilised"
             disks[keys[key]] = {"bad"=>true}
         end 
     end
@@ -287,19 +304,6 @@ end
 #   Main
 #
 
-#out = `sleep 30`
-#out_es = $?.exitstatus
-#out_exited = $?.exited?
-#out_ts = $?.termsig
-#out_pid = $?.pid
-#print "out = ", out, "\n"
-#print "return code = ", out_es, "\n"
-#print "termsig = ", out_ts, "\n"
-#print "pid = ", out_pid, "\n"
-#print "Exited? = ", out_exited, "\n"
-#print "(simple terminate on process)\n" if out_ts == 15
-#print "(kill on process)\n" if out_ts == 9
-
 #
 #   Check Process health
 #
@@ -309,8 +313,8 @@ hash_of_processes = get_pids(options[:application])
 hash_of_processes = check_process_state(hash_of_processes)
 scores.processes = score_calc_process_numbers(hash_of_processes, options[:processes])
 scores.process_state = score_calc_process(hash_of_processes) 
-print "Process_state score = ", scores.process_state, "\n"
-print "Processes score = ", scores.processes, "\n"
+$log.info "Process_state score = #{scores.process_state}"
+$log.info "Processes score = #{scores.processes}"
 
 
 #
@@ -321,4 +325,4 @@ hash_of_disks = Hash.new
 hash_of_disks = get_disks()
 hash_of_disks = check_disk_utilisation(hash_of_disks,options[:disk_utilisation])
 scores.disk_utilisation = score_calc_disk_utilisation(hash_of_disks)
-print "Disk utilisation score = ", scores.disk_utilisation, "\n"
+$log.info "Disk utilisation score = #{scores.disk_utilisation}"
