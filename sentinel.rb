@@ -222,58 +222,58 @@ def check_process_state (processes)
         $log.debug "state \t: #{processes[keys[key]]["state"]}"
         case processes[keys[key]]["state"]
             when "S"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state"
                 processes[keys[key]] = {"bad"=>false}
             when "SN"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a low-priority process"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a low-priority process"
                 processes[keys[key]] = {"bad"=>false}
             when "S<s"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a high-priority session leader"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a high-priority session leader"
                 processes[keys[key]] = {"bad"=>false}
             when "Ss+"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader running in the foreground"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader running in the foreground"
                 processes[keys[key]] = {"bad"=>false}
             when "Ssl"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader and multi-threaded"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader and multi-threaded"
                 processes[keys[key]] = {"bad"=>false}
             when "S<sl"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep and is a session leader, multi-threaded and high-priority"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep and is a session leader, multi-threaded and high-priority"
                 processes[keys[key]] = {"bad"=>false}
             when "Ss"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader"
                 processes[keys[key]] = {"bad"=>false}
             when "S+"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is in the foreground"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is in the foreground"
                 processes[keys[key]] = {"bad"=>false}
             when "S<"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state with high-priority"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state with high-priority"
                 processes[keys[key]] = {"bad"=>false}
             when "Sl"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is multi-threaded"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is multi-threaded"
                 processes[keys[key]] = {"bad"=>false}
             when "R"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard running state"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard running state"
                 processes[keys[key]] = {"bad"=>false}
             when "R+"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard running state and is in the foreground"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard running state and is in the foreground"
                 processes[keys[key]] = {"bad"=>false}
             when "D"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state"
                 processes[keys[key]] = {"bad"=>false}
             when "D+"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state and is in the foreground"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state and is in the foreground"
                 processes[keys[key]] = {"bad"=>false}
             when "T"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard stopped state"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard stopped state"
                 processes[keys[key]] = {"bad"=>false}
             when "W"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard paging state"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard paging state"
                 processes[keys[key]] = {"bad"=>false}
             when "X"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it is Dead!"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it is Dead!"
                 processes[keys[key]] = {"bad"=>true}
             when "Z"
-                $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it's a Zombie!!"
+                $log.debug "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it's a Zombie!!"
                 processes[keys[key]] = {"bad"=>true}
             else
                 $log.error "Process: #{processes[keys[key]]["pid"]} is in an unknown state of '#{processes[keys[key]]["state"]}'" 
@@ -366,7 +366,7 @@ def check_disk_utilisation(disks, utilisation)
         $log.debug "File System\t: #{disks[keys[key]]["filesystem"]}"
         $log.debug "File Type\t: #{disks[keys[key]]["type"]}"
         if (disks[keys[key]]["utilisation"].to_i > utilisation)
-            $log.info "#{disks[keys[key]]["mount"]} is #{disks[keys[key]]["utilisation"]} utilised"
+            $log.debug "#{disks[keys[key]]["mount"]} is #{disks[keys[key]]["utilisation"]} utilised"
             disks[keys[key]] = {"bad"=>true}
         end 
     end
