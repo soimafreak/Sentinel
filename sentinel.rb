@@ -86,6 +86,18 @@ optparse = OptionParser.new do|opts|
     opts.on( '--log-level DEBUG | INFO | WARN | ERROR | FATAL', String, 'Level of Logging required' ) do |log_level|
         options[:log_level] = log_level.upcase
     end
+    options[:physical_over_alloc] = 250
+    opts.on( '--physical-over-alloc INT', Integer, 'Physical memory over allocation percentage') do |poa|
+        options[:physical_over_alloc] = poa
+    end
+    options[:swap_over_alloc] = 200
+    opts.on( '--swap-over-alloc INT', Integer, 'Swap memory over allocation percentage') do |poa|
+        options[:swap_over_alloc] = poa
+    end
+    options[:total_over_alloc] = 150
+    opts.on( '--total-over-alloc INT', Integer, 'Total memory over allocation percentage') do |poa|
+        options[:total_over_alloc] = poa
+    end
     options[:processes] = 0
     opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
         options[:processes] = n
@@ -361,6 +373,85 @@ def check_disk_utilisation(disks, utilisation)
     return disks
 end
 
+def get_system_memory ()
+    #   Get basic memory information
+    physical_mem_total = `free |grep ^Mem | awk '{print $2}'`
+    physical_mem_used = `free |grep ^Mem | awk '{print $3}'`
+    physical_mem_free = `free |grep ^Mem | awk '{print $4}'`
+    swap_mem_total = `free |grep ^Swap | awk '{print $2}'`
+    swap_mem_used = `free |grep ^Swap | awk '{print $3}'`
+    swap_mem_free = `free |grep ^Swap | awk '{print $4}'`
+    memory = Hash.new
+    memory["physical"] = {"total"=>physical_mem_total.strip,"used"=>physical_mem_used.strip,"free"=>physical_mem_free.strip}
+    memory["swap"] = {"total"=>swap_mem_total.strip,"used"=>swap_mem_used.strip,"free"=>swap_mem_free.strip}
+    
+    return memory
+end
+
+def check_resident_memory (memory)
+    list_of_rss_mem = `ps aux | awk '{ print $6}' | grep -ve "^RSS"`
+    total_rss = 0 
+    score = 0
+    #   Loop through and total up RSS memory, should be the same as memory["physical"]["used"] or slightly smaller (calculation differences)
+    list_of_rss_mem.each {|mem| total_rss += mem.to_i }
+    if ( total_rss > memory["physical"]["used"].to_i ) 
+        $log.warn "Resident memory is greater than used physical memory"
+        $log.debug "Resident memory = #{total_rss} Used Physical Memory = #{memory["physical"]["used"]}"
+        #not sure if it is a real issue or if it's just unfortunate timing so small increase to score
+        score = 10
+    end
+    return score
+end
+
+def check_virtual_memory (memory)
+    list_of_vsz_mem = `ps aux | awk '{ print $5}' | grep -ve "^VSZ"`
+    total_vsz = 0
+    physical_over_alloc = 0
+    swap_over_alloc = 0
+    total_over_alloc = 0
+    total_available_mem = 0
+    mem_over_alloc = Hash.new
+    list_of_vsz_mem.each {|mem| total_vsz += mem.to_i }
+    $log.debug "Total Physical memory = #{memory["physical"]["total"]}"
+    $log.debug "Total virtual  memory = #{total_vsz}"
+    
+    #Calculate over allocation
+    total_available_mem = (memory["physical"]["total"].to_i + memory["swap"]["total"].to_i)
+    physical_over_alloc = ((total_vsz.to_f / memory["physical"]["total"].to_f) * 100).to_i
+    swap_over_alloc = ((total_vsz.to_f / memory["swap"]["total"].to_f) * 100).to_i
+    total_over_alloc = ((total_vsz.to_f / total_available_mem.to_f) * 100).to_i
+    
+    $log.debug "Physical Over allocation = #{physical_over_alloc}%"
+    $log.debug "Swap Over allocation = #{swap_over_alloc}%"
+    $log.debug "Total Over allocation = #{total_over_alloc}%"
+    mem_over_alloc["over_alloc"] = {"physical"=>physical_over_alloc,"swap"=>swap_over_alloc,"total"=>total_over_alloc}
+    return mem_over_alloc
+end
+
+def score_calc_memory (memory,physical_over_alloc,swap_over_alloc,total_over_alloc)
+    score_virtual = Hash.new
+    score_resident = 0
+    score = 0
+
+    #   Gather Resident Scors
+    score_resident = check_resident_memory(memory)
+    mem_over_alloc = check_virtual_memory(memory)
+    
+    #   Add the resident score on the off chance it has a value
+    score = score_resident
+    if (mem_over_alloc["over_alloc"]["physical"].to_i >= physical_over_alloc)
+        score += 100
+    end
+    if (mem_over_alloc["over_alloc"]["swap"].to_i >= swap_over_alloc)
+        score += 100
+    end
+    if (mem_over_alloc["over_alloc"]["total"].to_i >= total_over_alloc)
+        score += 100
+    end
+
+    return score
+end
+
 #
 #   Main
 #
@@ -382,8 +473,15 @@ $log.info "Processes score = #{scores.processes}"
 #   Check system health
 #
 
+#   Check Disks
 hash_of_disks = Hash.new 
 hash_of_disks = get_disks()
 hash_of_disks = check_disk_utilisation(hash_of_disks,options[:disk_utilisation])
 scores.disk_utilisation = score_calc_disk_utilisation(hash_of_disks)
 $log.info "Disk utilisation score = #{scores.disk_utilisation}"
+
+#   Check memory
+hash_of_memory = Hash.new
+hash_of_memory = get_system_memory()
+scores.memory = score_calc_memory(hash_of_memory,options[:physical_over_alloc],options[:swap_over_alloc],options[:total_over_alloc])
+$log.info "Memory utilisation score = #{scores.memory}"
