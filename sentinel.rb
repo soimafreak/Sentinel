@@ -194,17 +194,78 @@ def check_process_state (processes)
 #       W    paging (not valid since the 2.6.xx kernel)
 #       X    dead (should never be seen)
 #       Z    Defunct ("zombie") process, terminated but not reaped by its parent.
+
+#       For BSD formats and when the stat keyword is used, additional characters may be displayed:
+#       <    high-priority (not nice to other users)
+#       N    low-priority (nice to other users)
+#       L    has pages locked into memory (for real-time and custom IO)
+#       s    is a session leader
+#       l    is multi-threaded (using CLONE_THREAD, like NPTL pthreads do)
+#       +    is in the foreground process group
+
     keys = processes.keys
     for key in 0...keys.length
         $log.debug "key \t: #{keys[key]}"
         $log.debug "pid \t: #{processes[keys[key]]["pid"]}"
         $log.debug "state \t: #{processes[keys[key]]["state"]}"
-        if (processes[keys[key]]["state"] == "S" || processes[keys[key]]["state"] == "R")
-            $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty standard sleep or running state"
-            processes[keys[key]] = {"bad"=>false}
-        elsif (processes[keys[key]]["state"] == "Z" || processes[keys[key]]["state"] == "X")
-            $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, zombied from parent or Dead!"
-            processes[keys[key]] = {"bad"=>true}
+        case processes[keys[key]]["state"]
+            when "S"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state"
+                processes[keys[key]] = {"bad"=>false}
+            when "SN"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a low-priority process"
+                processes[keys[key]] = {"bad"=>false}
+            when "S<s"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a high-priority session leader"
+                processes[keys[key]] = {"bad"=>false}
+            when "Ss+"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader running in the foreground"
+                processes[keys[key]] = {"bad"=>false}
+            when "Ssl"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader and multi-threaded"
+                processes[keys[key]] = {"bad"=>false}
+            when "S<sl"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep and is a session leader, multi-threaded and high-priority"
+                processes[keys[key]] = {"bad"=>false}
+            when "Ss"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader"
+                processes[keys[key]] = {"bad"=>false}
+            when "S+"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is in the foreground"
+                processes[keys[key]] = {"bad"=>false}
+            when "S<"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state with high-priority"
+                processes[keys[key]] = {"bad"=>false}
+            when "Sl"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is multi-threaded"
+                processes[keys[key]] = {"bad"=>false}
+            when "R"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard running state"
+                processes[keys[key]] = {"bad"=>false}
+            when "R+"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard running state and is in the foreground"
+                processes[keys[key]] = {"bad"=>false}
+            when "D"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state"
+                processes[keys[key]] = {"bad"=>false}
+            when "D+"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state and is in the foreground"
+                processes[keys[key]] = {"bad"=>false}
+            when "T"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard stopped state"
+                processes[keys[key]] = {"bad"=>false}
+            when "W"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a standard paging state"
+                processes[keys[key]] = {"bad"=>false}
+            when "X"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it is Dead!"
+                processes[keys[key]] = {"bad"=>true}
+            when "Z"
+                $log.info "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it's a Zombie!!"
+                processes[keys[key]] = {"bad"=>true}
+            else
+                $log.error "Process: #{processes[keys[key]]["pid"]} is in an unknown state of '#{processes[keys[key]]["state"]}'" 
+                processes[keys[key]] = {"bad"=>true}
         end
     end
     
