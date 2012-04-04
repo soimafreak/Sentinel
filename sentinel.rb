@@ -71,7 +71,7 @@ optparse = OptionParser.new do|opts|
 
     # Define the options, and what they do
     options[:application] = nil
-    opts.on( '-a', '--application APPLICATION', String,  'Application owener to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
+    opts.on( '-a', '--application APPLICATION', String,  'Application owner to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
         options[:application] = app
     end
     options[:disk_utilisation] = 70
@@ -87,7 +87,7 @@ optparse = OptionParser.new do|opts|
         options[:log_level] = log_level.upcase
     end
     options[:processes] = 0
-    opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
+    opts.on( '-p', '--processes INT', Integer, 'Number of processes expected') do |n|
         options[:processes] = n
     end
     options[:verbose] = false
@@ -113,7 +113,7 @@ scores = Score.new
 
 include Log4r
 
-# Create a logger named 'mylog' that logs to stdout
+# Create a logger named 'log' that logs to stdout
 $log = Logger.new 'sentinel'
 
 # You can use any Outputter here.
