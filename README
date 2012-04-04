@@ -33,15 +33,15 @@
 #
 
 Sentinel was concieved as an idea after contemplating some "quick fix" work carried out
-on some production systems to ensure the application remoained operational as much as possible.
-The concept was orignially discussed on http://wp.me/p2d8cW-2K and more information about the
-future of the application can be found on the site above.
+on some production systems to ensure the application remained operational as much as possible.
+The concept was orignially discussed on http://soimasysadmin.wordpress.com/2012/04/04/self-healing-systems/ 
+and more information about the future of the application can be found on the site above.
 
 #
 #   Release
 #
 
-0.1a	-	This is the initial comit to the GitHub with minimal functionality as described below
+0.1a	-	This is the initial commit to the GitHub with minimal functionality as described below
 
 
 #
@@ -55,10 +55,10 @@ future of the application can be found on the site above.
 ** Check disk usage with DF
 ** If the disk usage is high, Log the offending disk info to the system log
 ** Check memory usage of system
-* Basic Application helath
+* Basic Application health
 ** Perform basic URL grab / scrape for search string
 * Basic actions
-** If process Zombied / dead / not running, start it
+** If process Zombied / Dead, start it
 ** If diskspace is 100% utilised, check list of "safe" to delete files in affected file system and delete
 ** If application check fails X times restart application
 * Run as a cron job
