@@ -7,7 +7,7 @@
 #   Author:         Matthew Smith <soimafreak@gmail.com>
 #   Site:           http://sentinel.soimafreak.co.uk/
 #   Purpose:        Check health of a process through various means and keep said process operating correctly
-#   Date:           27th march 2012
+#   Date:           27th March 2012
 #   Explination:    Sentinel will carry out a number of checks on the health of the application / system 
 #                   based on the outcome of these checks certain actions will be taken
 #   Requires:       gem install -r log4r
