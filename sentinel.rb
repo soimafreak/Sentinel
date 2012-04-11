@@ -187,7 +187,16 @@ def get_app_details (application)
 
     # Convert array into hash
     for i in 0...array_of_pids.length
-        processes[i] = {"pid"=>array_of_pids[i].to_s.split(",")[0], "state"=>array_of_pids[i].to_s.split(",")[5]}
+        processes[i] = {
+            "pid"=>array_of_pids[i].to_s.split(",")[0],
+            "cpu"=>array_of_pids[i].to_s.split(",")[1],
+            "mem"=>array_of_pids[i].to_s.split(",")[2],
+            "vsz"=>array_of_pids[i].to_s.split(",")[3],
+            "rss"=>array_of_pids[i].to_s.split(",")[4],
+            "state"=>array_of_pids[i].to_s.split(",")[5],
+            "start"=>array_of_pids[i].to_s.split(",")[6],
+            "command"=>array_of_pids[i].to_s.split(",")[7]
+        }
     end
     return processes
 end
