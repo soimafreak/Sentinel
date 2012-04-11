@@ -224,6 +224,7 @@ def check_process_state (processes)
 #       l    is multi-threaded (using CLONE_THREAD, like NPTL pthreads do)
 #       +    is in the foreground process group
 
+    bad_pids = Hash.new
     keys = processes.keys
     for key in 0...keys.length
         $log.debug "key \t: #{keys[key]}"
@@ -232,67 +233,67 @@ def check_process_state (processes)
         case processes[keys[key]]["state"]
             when "S"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "SN"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a low-priority process"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "S<s"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a high-priority session leader"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "Ss+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader running in the foreground"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "Ssl"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader and multi-threaded"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "S<sl"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep and is a session leader, multi-threaded and high-priority"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "Ss"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "S+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is in the foreground"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "S<"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state with high-priority"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "Sl"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is multi-threaded"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "R"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard running state"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "R+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard running state and is in the foreground"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "D"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state"
                 processes[keys[key]] = {"bad"=>false}
             when "D+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state and is in the foreground"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "T"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard stopped state"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "W"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard paging state"
-                processes[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false}
             when "X"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it is Dead!"
-                processes[keys[key]] = {"bad"=>true}
+                bad_pids[keys[key]] = {"bad"=>true}
             when "Z"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it's a Zombie!!"
-                processes[keys[key]] = {"bad"=>true}
+                bad_pids[keys[key]] = {"bad"=>true}
             else
                 $log.error "Process: #{processes[keys[key]]["pid"]} is in an unknown state of '#{processes[keys[key]]["state"]}'" 
-                processes[keys[key]] = {"bad"=>true}
+                bad_pids[keys[key]] = {"bad"=>true}
         end
     end
     
     #For each bad pid add a score
     
-    return processes
+    return bad_pids
 # Probably need to check the state of the PPID as well
 end
 
@@ -470,10 +471,11 @@ end
 #
 
 hash_of_processes = Hash.new 
+hash_of_bad_processes = Hash.new 
 hash_of_processes = get_app_details(options[:application])
-hash_of_processes = check_process_state(hash_of_processes)
-scores.processes = score_calc_process_numbers(hash_of_processes, options[:processes])
-scores.process_state = score_calc_process(hash_of_processes) 
+hash_of_bad_processes = check_process_state(hash_of_processes)
+scores.processes = score_calc_process_numbers(hash_of_bad_processes, options[:processes])
+scores.process_state = score_calc_process(hash_of_bad_processes) 
 $log.info "Process_state score = #{scores.process_state}"
 $log.info "Processes score = #{scores.processes}"
 
