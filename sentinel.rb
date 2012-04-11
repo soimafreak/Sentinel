@@ -174,7 +174,7 @@ file.formatter = format
 #   Get Pids
 #
 
-def get_pids (application)
+def get_app_details (application)
     
     processes = Hash.new 
     array_of_pids = Array.new
@@ -461,7 +461,7 @@ end
 #
 
 hash_of_processes = Hash.new 
-hash_of_processes = get_pids(options[:application])
+hash_of_processes = get_app_details(options[:application])
 hash_of_processes = check_process_state(hash_of_processes)
 scores.processes = score_calc_process_numbers(hash_of_processes, options[:processes])
 scores.process_state = score_calc_process(hash_of_processes) 
