@@ -180,14 +180,14 @@ def get_app_details (application)
     array_of_pids = Array.new
 
     # GET pids / state of "apache" processes
-    list_of_pids = `ps -fu #{application} w | awk '{print $2 "," $7}' | grep -ve "^PID"`
+    list_of_pids = `ps U #{application} u | awk '{print $2 "," $3 "," $4 "," $5 "," $6 "," $8 "," $9 "," substr($0, index($0,$11))}' | grep -ve "^PID"`
 
     #Convert the list into an array
     array_of_pids=list_of_pids.split("\n")
 
     # Convert array into hash
     for i in 0...array_of_pids.length
-        processes[i] = {"pid"=>array_of_pids[i].to_s.split(",")[0], "state"=>array_of_pids[i].to_s.split(",")[1]}
+        processes[i] = {"pid"=>array_of_pids[i].to_s.split(",")[0], "state"=>array_of_pids[i].to_s.split(",")[5]}
     end
     return processes
 end
