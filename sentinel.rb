@@ -438,6 +438,27 @@ def check_virtual_memory (memory)
     return mem_over_alloc
 end
 
+def check_app_memory (application)
+    keys    = application.keys
+    app_memory = Hash.new
+    for key in 0...keys.length
+        $log.debug "pid \t: #{application[keys[key]]["pid"]}"
+        $log.debug "Percent of total Memory \t: #{application[keys[key]]["mem"]}"
+        $log.debug "Virtual memory size \t: #{application[keys[key]]["vsz"]}"
+        $log.debug "Resident Set Size \t: #{application[keys[key]]["rss"]}"
+
+        used_allocation =((application[keys[key]]["rss"].to_f / application[keys[key]]["vsz"].to_f) * 100).to_i
+        $log.debug "Percent of used allocation \t: #{used_allocation}"
+
+        app_memory[keys[key]] = {
+            "pid"=>application[keys[key]]["pid"],
+            "mem_of_total"=>application[keys[key]]["mem"],
+            "used_allocation"=>used_allocation
+        }
+    end
+    return app_memory
+end
+
 def score_calc_memory (memory,physical_over_alloc,swap_over_alloc,total_over_alloc)
     score_virtual = Hash.new
     score_resident = 0
@@ -496,3 +517,9 @@ hash_of_memory = Hash.new
 hash_of_memory = get_system_memory()
 scores.memory = score_calc_memory(hash_of_memory,options[:physical_over_alloc],options[:swap_over_alloc],options[:total_over_alloc])
 $log.info "Memory utilisation score = #{scores.memory}"
+
+#   Check app memory
+
+# hash of processes contains the info from get_app_details
+hash_of_app_memory = Hash.new
+hash_of_app_memory = check_app_memory(hash_of_processes)
