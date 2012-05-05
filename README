@@ -42,6 +42,7 @@ future of the application can be found on the site above.
 #
 
 0.1a	-	This is the initial comit to the GitHub with minimal functionality as described below
+0.1b    -   Added some Application memory metrics
 
 
 #
@@ -79,3 +80,8 @@ set smarttab
 #
 #   Notes
 #
+
+- In Addition to the features above It is becomming increasingly necessary to start considering some better
+structures for storing the scores in.
+- Also need to start splitting out the code into a bit of a structure or something... Not sure what this
+will involve or best way toa chieve but something is needed...
