@@ -38,11 +38,23 @@ The concept was orignially discussed on http://wp.me/p2d8cW-2K and more informat
 future of the application can be found on the site above.
 
 #
+#   Versioning
+#
+
+Major.Minor(Character increment) For example:
+
+0.1     - Final release of 0.1
+0.1(a)  - First feature release of final 0.1
+0.1(aa) - Twenty seventh feature release of final 0.1
+
+Non-character suffixed releases should be stable.
+
+#
 #   Release
 #
 
-0.1a	-	This is the initial comit to the GitHub with minimal functionality as described below
-0.1b    -   Added some Application memory metrics
+0.1(a)      -	This is the initial comit to the GitHub with minimal functionality as described below
+0.1(b)      -   Added some Application memory metrics
 
 
 #
