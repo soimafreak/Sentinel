@@ -7,7 +7,7 @@
 #   Author:         Matthew Smith <soimafreak@gmail.com>
 #   Site:           http://sentinel.soimafreak.co.uk/
 #   Purpose:        Check health of a process through various means and keep said process operating correctly
-#   Date:           27th march 2012
+#   Date:           27th March 2012
 #   Explination:    Sentinel will carry out a number of checks on the health of the application / system 
 #                   based on the outcome of these checks certain actions will be taken
 #   Requires:       gem install -r log4r
@@ -71,7 +71,7 @@ optparse = OptionParser.new do|opts|
 
     # Define the options, and what they do
     options[:application] = nil
-    opts.on( '-a', '--application APPLICATION', String,  'Application owener to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
+    opts.on( '-a', '--application APPLICATION', String,  'Application owner to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
         options[:application] = app
     end
     options[:application_mem_utilisation] = 80
@@ -103,7 +103,7 @@ optparse = OptionParser.new do|opts|
         options[:total_over_alloc] = poa
     end
     options[:processes] = 0
-    opts.on( '-p', '--proccesses INT', Integer, 'Number of proccesses expected') do |n|
+    opts.on( '-p', '--processes INT', Integer, 'Number of processes expected') do |n|
         options[:processes] = n
     end
     options[:verbose] = false
@@ -129,7 +129,7 @@ scores = Score.new
 
 include Log4r
 
-# Create a logger named 'mylog' that logs to stdout
+# Create a logger named 'log' that logs to stdout
 $log = Logger.new 'sentinel'
 
 # You can use any Outputter here.
