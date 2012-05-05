@@ -74,6 +74,10 @@ optparse = OptionParser.new do|opts|
     opts.on( '-a', '--application APPLICATION', String,  'Application owener to monitor i.e. httpd would be apache, tomcat would be tomcat') do |app|
         options[:application] = app
     end
+    options[:application_mem_utilisation] = 80
+    opts.on( '--application-mem-utilisation INT', Integer,  'Application memory utilisation percentage (rss/vsz)') do |app_mem_util|
+        options[:application_mem_utilisation] = app_mem_util
+    end
     options[:disk_utilisation] = 70
     opts.on( '-d', '--disk-utilisation INT', Integer, 'Disk utilisation') do |du|
         options[:disk_utilisation] = du
@@ -327,7 +331,7 @@ def score_calc_process (processes)
         end
     end
     if (keys.length > 0)
-        score = ((badpids.to_f / keys.length.to_f)*100).to_i
+        score = ((badpids.to_f / keys.length.to_f)*100)
     end
     return score
 end
@@ -342,7 +346,7 @@ def score_calc_disk_utilisation (disks)
         end
     end
     if (keys.length > 0)
-        score = ((baddisks.to_f / keys.length.to_f)*100).to_i
+        score = ((baddisks.to_f / keys.length.to_f)*100)
     end
     return score
 end
@@ -427,9 +431,9 @@ def check_virtual_memory (memory)
     
     #Calculate over allocation
     total_available_mem = (memory["physical"]["total"].to_i + memory["swap"]["total"].to_i)
-    physical_over_alloc = ((total_vsz.to_f / memory["physical"]["total"].to_f) * 100).to_i
-    swap_over_alloc = ((total_vsz.to_f / memory["swap"]["total"].to_f) * 100).to_i
-    total_over_alloc = ((total_vsz.to_f / total_available_mem.to_f) * 100).to_i
+    physical_over_alloc = ((total_vsz.to_f / memory["physical"]["total"].to_f) * 100)
+    swap_over_alloc = ((total_vsz.to_f / memory["swap"]["total"].to_f) * 100)
+    total_over_alloc = ((total_vsz.to_f / total_available_mem.to_f) * 100)
     
     $log.debug "Physical Over allocation = #{physical_over_alloc}%"
     $log.debug "Swap Over allocation = #{swap_over_alloc}%"
@@ -447,7 +451,7 @@ def check_app_memory (application)
         $log.debug "Virtual memory size \t: #{application[keys[key]]["vsz"]}"
         $log.debug "Resident Set Size \t: #{application[keys[key]]["rss"]}"
 
-        used_allocation =((application[keys[key]]["rss"].to_f / application[keys[key]]["vsz"].to_f) * 100).to_i
+        used_allocation =((application[keys[key]]["rss"].to_f / application[keys[key]]["vsz"].to_f) * 100)
         $log.debug "Percent of used allocation \t: #{used_allocation}"
 
         app_memory[keys[key]] = {
@@ -480,6 +484,25 @@ def score_calc_memory (memory,physical_over_alloc,swap_over_alloc,total_over_all
         score += 100
     end
 
+    return score
+end
+
+def score_calc_app_memory (app_memory, app_mem_utilisation)
+    keys = app_memory.keys
+    score =  0
+    mem_of_total = 0.0
+    for key in 0...keys.length
+        mem_of_total += app_memory[keys[key]]["mem_of_total"].to_f
+        if (app_memory[keys[key]]["used_allocation"] >= app_mem_utilisation)
+            $log.debug "Application is using more than #{app_mem_utilisation}% of memory allocated to this thread ( #{app_memory[keys[key]]["pid"]})"
+            score += 50
+        end
+    end
+    if (mem_of_total >= app_mem_utilisation)
+        $log.debug "Application is usinig more than #{app_mem_utilisation}% of total memory"
+        score += 100
+    end
+    $log.debug "Total app memory utilisation\t: #{mem_of_total}"
     return score
 end
 
@@ -523,3 +546,5 @@ $log.info "Memory utilisation score = #{scores.memory}"
 # hash of processes contains the info from get_app_details
 hash_of_app_memory = Hash.new
 hash_of_app_memory = check_app_memory(hash_of_processes)
+scores.application = score_calc_app_memory(hash_of_app_memory,options[:application_mem_utilisation]) 
+$log.info "Application Memory utilisation score = #{scores.application}"
