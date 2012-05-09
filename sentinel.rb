@@ -36,6 +36,8 @@
 require 'optparse'
 require 'rubygems'
 require 'log4r'
+require 'net/http'
+require 'uri'
 
 #
 #   Classes 
@@ -461,6 +463,20 @@ def check_app_memory (application)
         }
     end
     return app_memory
+end
+
+def check_url (term, uri)
+    # Search url for string
+    url = URI.parse(uri)
+    result = Net::HTTP.get(url)
+    match = 0
+    regexp = Regexp.new(term)
+    if (regexp.match(result) != nil)
+        match=1
+    end
+    
+    $log.debug "Check URL String match \t: #{match}" 
+    return match
 end
 
 def score_calc_memory (memory,physical_over_alloc,swap_over_alloc,total_over_alloc)
