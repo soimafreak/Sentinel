@@ -344,7 +344,7 @@ def score_calc_process (processes)
     if (keys.length > 0)
         score = ((badpids.to_f / keys.length.to_f)*100)
     end
-    return score
+    return score.to_i
 end
 
 def score_calc_disk_utilisation (disks)
@@ -359,7 +359,7 @@ def score_calc_disk_utilisation (disks)
     if (keys.length > 0)
         score = ((baddisks.to_f / keys.length.to_f)*100)
     end
-    return score
+    return score.to_i
 end
 
 def get_disks 
