@@ -117,6 +117,10 @@ optparse = OptionParser.new do|opts|
     opts.on( '-p', '--processes INT', Integer, 'Number of processes expected') do |n|
         options[:processes] = n
     end
+    options[:process_bad_percentage] = 0
+    opts.on( '-p', '--process-bad-percentage INT', Integer, 'Percent of bad processes that are acceptable') do |pbp|
+        options[:process_bad_pecentage] = pbp
+    end
     options[:verbose] = false
     opts.on( '-v', '--verbose', 'Output more information' ) do
         options[:verbose] = true
@@ -538,6 +542,18 @@ def score_app_url (search_term, uri)
         score = 100
     end
     return score
+end
+
+
+#
+# Actions
+#
+
+# Process state
+
+def action_process_state (process_bad_pids_percent)
+    
+
 end
 
 #
