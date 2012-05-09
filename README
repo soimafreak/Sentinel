@@ -55,6 +55,7 @@ Non-character suffixed releases should be stable.
 
 0.1(a)      -	This is the initial comit to the GitHub with minimal functionality as described below
 0.1(b)      -   Added some Application memory metrics
+0.1(c)      -   Added URL Grab / search
 
 #
 #   Features
