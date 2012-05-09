@@ -80,6 +80,14 @@ optparse = OptionParser.new do|opts|
     opts.on( '--application-mem-utilisation INT', Integer,  'Application memory utilisation percentage (rss/vsz)') do |app_mem_util|
         options[:application_mem_utilisation] = app_mem_util
     end
+    options[:application_url_check] = nil
+    opts.on( '--application-url-check string', String,  'Application url to check') do |app_url_check|
+        options[:application_url_check] = app_url_check
+    end
+    options[:application_search_term] = nil
+    opts.on( '--application-search-term string', String,  'Search term to check against url') do |app_search_term|
+        options[:application_search_term] = app_search_term
+    end
     options[:disk_utilisation] = 70
     opts.on( '-d', '--disk-utilisation INT', Integer, 'Disk utilisation') do |du|
         options[:disk_utilisation] = du
