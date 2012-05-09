@@ -46,12 +46,13 @@ require 'uri'
 #   Score
 
 class Score
-    attr_accessor :processes, :process_state, :application, :disk_utilisation, :memory
+    attr_accessor :processes, :process_state, :application, :application_url, :disk_utilisation, :memory
     
-    def initialize(processes = 0, process_state = 0, application = 0, disk_utilisation = 0, memory = 0)
+    def initialize(processes = 0, process_state = 0, application = 0, application_url = 0, disk_utilisation = 0, memory = 0)
         @processes          = 0
         @process_state      = 0
         @application        = 0
+        @application_url    = 0
         @disk_utilisation   = 0
         @memory             = 0
     end
@@ -530,6 +531,15 @@ def score_calc_app_memory (app_memory, app_mem_utilisation)
     return score
 end
 
+def score_app_url (search_term, uri)
+    result = check_url(search_term, uri)
+    score = 0
+    if (result == 0)
+        score = 100
+    end
+    return score
+end
+
 #
 #   Main
 #
@@ -572,3 +582,14 @@ hash_of_app_memory = Hash.new
 hash_of_app_memory = check_app_memory(hash_of_processes)
 scores.application = score_calc_app_memory(hash_of_app_memory,options[:application_mem_utilisation]) 
 $log.info "Application Memory utilisation score = #{scores.application}"
+
+if (options[:application_url_check] != nil)
+    if (options[:application_search_term] != nil)
+        scores.application_url = score_app_url(options[:application_search_term],options[:application_url_check])
+        $log.info "Application check URL score = #{scores.application_url}"
+    else
+        $log.warn "No search term set for URL check"
+    end
+else
+    $log.warn "No URL specified for URl check"
+end
