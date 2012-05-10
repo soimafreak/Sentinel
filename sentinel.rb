@@ -38,6 +38,7 @@ require 'rubygems'
 require 'log4r'
 require 'net/http'
 require 'uri'
+require 'timeout'
 
 #
 #   Classes 
@@ -252,61 +253,61 @@ def check_process_state (processes)
         case processes[keys[key]]["state"]
             when "S"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "SN"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a low-priority process"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "S<s"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a high-priority session leader"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "Ss+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader running in the foreground"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "Ssl"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader and multi-threaded"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "S<sl"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep and is a session leader, multi-threaded and high-priority"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "Ss"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is a session leader"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "S+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is in the foreground"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "S<"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state with high-priority"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "Sl"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard sleep state and is multi-threaded"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "R"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard running state"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "R+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard running state and is in the foreground"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "D"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state"
-                processes[keys[key]] = {"bad"=>false}
+                processes[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "D+"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a uninterruptible sleep state and is in the foreground"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "T"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard stopped state"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "W"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a standard paging state"
-                bad_pids[keys[key]] = {"bad"=>false}
+                bad_pids[keys[key]] = {"bad"=>false,"pid"=>processes[keys[key]]["pid"].to_i}
             when "X"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it is Dead!"
-                bad_pids[keys[key]] = {"bad"=>true}
+                bad_pids[keys[key]] = {"bad"=>true,"pid"=>processes[keys[key]]["pid"].to_i}
             when "Z"
                 $log.debug "Process: #{processes[keys[key]]["pid"]} is in a pretty bad way, it's a Zombie!!"
-                bad_pids[keys[key]] = {"bad"=>true}
+                bad_pids[keys[key]] = {"bad"=>true,"pid"=>processes[keys[key]]["pid"].to_i}
             else
                 $log.error "Process: #{processes[keys[key]]["pid"]} is in an unknown state of '#{processes[keys[key]]["state"]}'" 
-                bad_pids[keys[key]] = {"bad"=>true}
+                bad_pids[keys[key]] = {"bad"=>true,"pid"=>processes[keys[key]]["pid"].to_i}
         end
     end
     
@@ -551,9 +552,29 @@ end
 
 # Process state
 
-def action_process_state (process_bad_pids_percent)
-    
+def action_process_state (bad_pids)
+   # Loop through all pids, take un-relenting action on the bad pids
+   keys    = bad_pids.keys
+    for key in 0...keys.length
+        if (bad_pids[keys[key]]["bad"] == true)
+            $log.warn "Killing Process ID \t: #{bad_pids[keys[key]]["pid"]}"
+            action_kill_process (bad_pids[keys[key]]["pid"])
+        end
+    end
+end
 
+def action_kill_process (pid)
+    #This was adapted from: http://ablogaboutcode.com/2010/12/18/a-simple-ruby-script-to-gracefully-terminate-system-processes/
+    begin
+        Process.kill("TERM",pid)
+        Timeout::timeout(30) do
+            begin
+                sleep 1
+            end while !!(`ps -p #{pid}`.match pid.to_s)
+        end
+    rescue Timeout::Error
+        Process.kill("KILL",pid)
+    end
 end
 
 #
@@ -608,4 +629,9 @@ if (options[:application_url_check] != nil)
     end
 else
     $log.warn "No URL specified for URl check"
+end
+
+
+if (scores.process_state >= options[:process_bad_percentage])
+    action_process_state(hash_of_bad_processes)
 end
