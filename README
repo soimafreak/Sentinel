@@ -94,6 +94,7 @@ set smarttab
 #   Notes
 #
 
+
 - In Addition to the features above It is becomming increasingly necessary to start considering some better
 structures for storing the scores in.
 - Also need to start splitting out the code into a bit of a structure or something... Not sure what this
