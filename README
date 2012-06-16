@@ -4,12 +4,8 @@
 #
 #   Author:         Matthew Smith <soimafreak@gmail.com>
 #   Site:           http://sentinel.soimafreak.co.uk/
-#   Purpose:        Check health of a process through various means and keep said process operating correctly
-#   Date:           27th March 2012
-#   Explination:    Sentinel will carry out a number of checks on the health of the application / system 
-#                   based on the outcome of these checks certain actions will be taken
-#   Requires:       gem install -r log4r
-#   Thanks:         http://angrez.blogspot.co.uk/2006/12/log4r-usage-and-examples.html
+#   Repo:           https://github.com/soimafreak/Sentinel
+#
 #
 #   Copyright:      Copyright (C) 2012, Matthew Smith 
 #   License:
@@ -41,26 +37,24 @@ and more information about the future of the application can be found on the sit
 #   Versioning
 #
 
-Major.Minor(Character increment) For example:
+Formal releases will be of x.y.z format following http://semver.org/
 
-0.1     - Final release of 0.1
-0.1(a)  - First feature release of final 0.1
-0.1(aa) - Twenty seventh feature release of final 0.1
+Development format: x.y.z.a.b
+For coding purposes the revision after x.y.z is a.b where: 
+A is a major re-factor of code or development mile stone
+B is a addation, subtraction or modification to existing functionality
 
-Non-character suffixed releases should be stable.
-
-#
-#   Release
-#
-
-0.1(a)      -	This is the initial comit to the GitHub with minimal functionality as described below
-0.1(b)      -   Added some Application memory metrics
-0.1(c)      -   Added URL Grab / search
-0.1(d)      -   Added process kill for dead / zombie processes
+0.1.0.0.0   -   This is the initial comit to the GitHub with minimal functionality as described below
+0.1.0.0.1   -   Added some Application memory metrics
+0.1.0.0.2   -   Added URL Grab / search
+0.1.0.0.3   -   Added process kill for dead / zombie processes
+0.1.0.1.0   -   Major re-work of code layout, introduction of gemspec / gem build, rework of revision numbers
 
 #
 #   Features
 #
+
+Below features are needed for 0.1.0 release:
 
 * Basic check of a *nix process state
 ** Is there a process running?
@@ -77,7 +71,13 @@ Non-character suffixed releases should be stable.
 ** If application check fails X times restart application
 * Run as a cron job
 * Log output
-* Take options from CLI where appropriate
+* Configuration
+** Take options from CLI where appropriate
+** Load options from Configuration file
+* Code
+** Appropriate structure for development
+** Provide application in gem format
+** Write tests for each function
 
 #
 #   Coding standard
@@ -87,8 +87,13 @@ Non-character suffixed releases should be stable.
 set tabstop=4
 set shiftwidth=4
 set expandtab
-set autoindent
 set smarttab
+
+#
+# Thanks
+#
+
+http://angrez.blogspot.co.uk/2006/12/log4r-usage-and-examples.html - Helped me get up and workign with Log4r
 
 #
 #   Notes
@@ -98,3 +103,7 @@ set smarttab
 structures for storing the scores in.
 - Also need to start splitting out the code into a bit of a structure or something... Not sure what this
 will involve or best way toa chieve but something is needed...
+- I have changed the versioning structure of the product as above
+- I have changed the structure of the project to better fit with the aim of writing gem files
+- I have re-versioned the initial commits to match with new versioning method
+
