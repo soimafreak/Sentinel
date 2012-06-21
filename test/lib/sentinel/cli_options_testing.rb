@@ -36,6 +36,8 @@ require 'test/unit'
 
 class CLIOptionsTest < Test::Unit::TestCase
 
-    
+   #
+   # Test that the CLI Options class returns the correct results 
+   #
 
 end

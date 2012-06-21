@@ -24,8 +24,11 @@
 ##
 ##################################################################
 
+# Requires
+require 'sentinel/scores'
+require 'sentinel/cli_options'
+
 class Sentinel
-    
+   
 end
 
-require 'sentinel/scores'
