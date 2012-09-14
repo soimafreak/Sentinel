@@ -25,7 +25,7 @@
 ###################################################################
 
 #
-# This class will gathe roptions from the CLI
+# This class will gather options from the CLI
 #
 
 require 'optparse'
