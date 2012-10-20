@@ -44,7 +44,7 @@ require 'sentinel'
 #   initialize variables
 #
 scores = Sentinel::Scores.new
-options = Sentinel::Options.new
+options = Sentinel::CLIOptions.new
 
 #
 #   Set up Logging

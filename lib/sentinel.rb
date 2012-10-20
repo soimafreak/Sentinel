@@ -29,6 +29,8 @@ require 'sentinel/scores'
 require 'sentinel/cli_options'
 
 class Sentinel
+
+scores = Scores.new
+options = CLIOptions.new
    
 end
-
