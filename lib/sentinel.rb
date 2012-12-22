@@ -29,23 +29,24 @@ require 'rubygems'
 require 'net/http'
 require 'uri'
 require 'timeout'
+$:.unshift File.expand_path("../", __FILE__)
 require 'sentinel/scores'
 require 'sentinel/cli_options'
 require 'sentinel/logging'
-require 'sentinel/util/process'
+require 'sentinel/util/processutil'
 
 class Sentinel
 
     def initialize()
         # Setting Up Logging
-        Logging::new('sentinel')
+        Logging::new('sentinel','/Users/soimafreak/')
         #Default level is info and No standard out
         Logging.log_level("INFO",false)
         $log.info "Sentinel is starting"
 
         @scores = Scores.new
         @options = CLIOptions.new
-        @proc = Process.new
+        @proc = ProcessUtil.new
     end   
 
     def get_app_details ()

@@ -28,7 +28,11 @@
 # This class will manage processes
 #
 
-class Process
+class ProcessUtil
+
+    def initialize()
+
+    end
 
     def get_process_details(application)
 
