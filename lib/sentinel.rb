@@ -38,7 +38,7 @@ class Sentinel
 
     def initialize()
         # Setting Up Logging
-        Logging::new('sentinel.log')
+        Logging::new('sentinel')
         #Default level is info and No standard out
         Logging.log_level("INFO",false)
         $log.info "Sentinel is starting"
@@ -73,7 +73,7 @@ class Sentinel
         elsif (processes.length == expected)
             score = 0
         end
-        return score
+        @scores.processes=score
     end
 
     #
@@ -92,7 +92,7 @@ class Sentinel
         if (keys.length > 0)
             score = ((badpids.to_f / keys.length.to_f)*100)
         end
-        return score.to_i
+        @scores.process_state=score.to_i
     end
 
     def score_calc_disk_utilisation (disks)
@@ -107,7 +107,7 @@ class Sentinel
         if (keys.length > 0)
             score = ((baddisks.to_f / keys.length.to_f)*100)
         end
-        return score.to_i
+        @score.disk_utilidation=score.to.i
     end
 
     def get_disks 
@@ -260,8 +260,7 @@ class Sentinel
         if (mem_over_alloc["over_alloc"]["total"].to_i >= total_over_alloc)
             score += 100
         end
-
-        return score
+        @score.memory=score
     end
 
     def score_calc_app_memory (app_memory)
@@ -281,7 +280,7 @@ class Sentinel
             score += 100
         end
         $log.debug "Total app memory utilisation\t: #{mem_of_total}"
-        return score
+        @score.application=score
     end
 
     def score_app_url ()
@@ -292,6 +291,31 @@ class Sentinel
         if (result == 0)
             score = 100
         end
-        return score
+        @score.application_url=score
     end
+
+    def get_score_processes()
+        return @score.processes
+    end
+
+    def get_score_process_state()
+        return @score.process_state
+    end
+    
+    def get_score_disk_utilisation()
+        return @score.disk_utilisation
+    end
+
+    def get_score_memory()
+        return @score.memory
+    end
+
+    def get_score_application()
+        return @score.application
+    end
+
+    def get_score_application_url()
+        return @score.application_url
+    end
+
 end

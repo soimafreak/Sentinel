@@ -53,41 +53,35 @@ hash_of_app_memory = Hash.new
 
 hash_of_processes = sentinel.get_app_details()
 hash_of_bad_processes = sentinel.check_process_state(hash_of_processes)
-scores.processes = sentinel.score_calc_process_numbers(hash_of_bad_processes)
-scores.process_state = sentinel.score_calc_process(hash_of_bad_processes) 
-$log.info "Process_state score = #{scores.process_state}"
-$log.info "Processes score = #{scores.processes}"
+$log.info "Process_state score = #{sentinel.get_score_process_state}"
+$log.info "Processes score = #{sentinel.get_score_processes}"
 
 #
 #   Check system health
 #
 
 #   Check Disks
-hash_of_disks = get_disks()
-hash_of_disks = check_disk_utilisation(hash_of_disks)
-scores.disk_utilisation = score_calc_disk_utilisation(hash_of_disks)
-$log.info "Disk utilisation score = #{scores.disk_utilisation}"
+hash_of_disks = sentinel.get_disks()
+hash_of_disks = sentinel.heck_disk_utilisation(hash_of_disks)
+$log.info "Disk utilisation score = #{sentinel.get_score_disk_utilisation}"
 
 #   Check memory
-hash_of_memory = get_system_memory()
-scores.memory = score_calc_memory(hash_of_memory)
-$log.info "Memory utilisation score = #{scores.memory}"
+hash_of_memory = sentinel.get_system_memory()
+$log.info "Memory utilisation score = #{sentinel.get_score_memory}"
 
 # hash of processes contains the info from get_app_details
-hash_of_app_memory = check_app_memory(hash_of_processes)
-scores.application = score_calc_app_memory(hash_of_app_memory) 
-$log.info "Application Memory utilisation score = #{scores.application}"
+hash_of_app_memory = sentinel.check_app_memory(hash_of_processes)
+$log.info "Application Memory utilisation score = #{sentinel.get_score_application}"
 
 if (options[:application_url_check] != nil)
     if (options[:application_search_term] != nil)
-        scores.application_url = score_app_url()
-        $log.info "Application check URL score = #{scores.application_url}"
+        $log.info "Application check URL score = #{sentinel.get_score_application_url}"
     else
         $log.warn "No search term set for URL check"
     end
 else
     $log.warn "No URL specified for URl check"
 end
-if (scores.process_state >= options[:process_bad_percentage])
+if (sentinel.get_score_process_state >= options[:process_bad_percentage])
     sentinel.action_process_state(hash_of_bad_processes)
 end
