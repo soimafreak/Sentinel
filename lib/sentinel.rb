@@ -37,7 +37,7 @@ require 'sentinel/util/processutil'
 
 class Sentinel
 
-    def initialize()
+    def initialize(options)
         # Setting Up Logging
         Logging::new('sentinel','/Users/soimafreak/')
         #Default level is info and No standard out
@@ -45,7 +45,7 @@ class Sentinel
         $log.info "Sentinel is starting"
 
         @scores = Scores.new
-        @options = CLIOptions.new
+        @options = CLIOptions.parse(options)
         @proc = ProcessUtil.new
     end   
 

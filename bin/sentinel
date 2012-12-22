@@ -40,7 +40,7 @@ require 'lib/sentinel'
 #   initiate vars
 #
 
-sentinel = Sentinel.new
+sentinel = Sentinel.new(ARGV)
 
 hash_of_processes = Hash.new 
 hash_of_bad_processes = Hash.new 
